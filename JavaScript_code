@@ -1,0 +1,139 @@
+
+function calculateDiscount(cart, rules) {
+    let Amount = 0;
+
+    
+    for (const rule of rules) {
+        const ruleType = rule.type;
+        
+        switch (ruleType) {
+            case "flat_10_discount":
+                if (cart.total > 200) {
+                    Amount = Math.min(Amount, 10);
+                }
+                break;
+            case "bulk_5_discount":
+                for (const product of cart.products) {
+                    if (product.quantity > 10) {
+                        Amount = Math.min(Amount, product.price * 0.05);
+                    }
+                }
+                break;
+            case "bulk_10_discount":
+                if (cart.totalQuantity > 20) {
+                    Amount = Math.min(Amount, cart.total * 0.1);
+                }
+                break;
+            case "tiered_50_discount":
+                if (cart.totalQuantity > 30) {
+                    for (const product of cart.products) {
+                        if (product.quantity > 15) {
+                            Amount += (product.quantity - 15) * (product.price * 0.5);
+                        }
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    return Amount;
+}
+
+// Function to display the final receipt
+function displayReceipt(cart, discountName, discountAmount, shippingFee, giftWrapFee, total) {
+    console.log("Pro.\t\tQuan.\t\tTotal Amount");
+    for (const product of cart.products) {
+        console.log(`${product.name}\t\t${product.quantity}\t\t$${product.total}`);
+    }
+
+    console.log(`\nSubtotal: $${cart.total.toFixed(2)}`);
+    console.log(`Discount Applied (${discountName}): -$${discountAmount.toFixed(2)}`);
+    console.log(`Shipping Fee: $${shippingFee.toFixed(2)}`);
+    console.log(`Gift Wrap Fee: $${giftWrapFee.toFixed(2)}`);
+    console.log(`\nTotal: $${total.toFixed(2)}`);
+}
+
+
+// Function to calculate gift wrap fee
+function calculateGiftWrapFee(cart) {
+    let gift = 0;
+
+    for (const product of cart.products) {
+        gift += product.isGiftWrapped ? product.quantity : 0;
+    }
+
+    return gift;
+}
+
+// Function to calculate shipping fee
+function calculateShippingFee(cart) {
+    return Math.ceil(cart.totalQuantity / 10) * 5;
+}
+
+
+
+// Main program
+function main() {
+    const products = [
+        { name: "Product A", price: 20, quantity: 0, isGiftWrapped: false, total: 0 },
+        { name: "Product B", price: 40, quantity: 0, isGiftWrapped: false, total: 0 },
+        { name: "Product C", price: 50, quantity: 0, isGiftWrapped: false, total: 0 }
+    ];
+
+    let cart = {
+        products: products,
+        total: 0,
+        totalQuantity: 0
+    };
+
+    // Input quantity and gift wrap information for each product
+    for (const product of cart.products) {
+        product.quantity = parseInt(prompt(`Enter the quantity for ${product.name}:`));
+        product.isGiftWrapped = confirm(`Is ${product.name} wrapped as a gift?`);
+        product.total = product.quantity * product.price;
+        cart.total += product.total;
+        cart.totalQuantity += product.quantity;
+    }
+
+    // Calculate discounts, fees, and total
+    const discountAmount = calculateDiscount(cart, discountRules);
+    const shippingFee = calculateShippingFee(cart);
+    const giftWrapFee = calculateGiftWrapFee(cart);
+    const total = cart.total - discountAmount + shippingFee + giftWrapFee;
+
+    // Determine the most beneficial discount rule applied
+    let discountName = "";
+    if (discountAmount > 0) {
+        for (const rule of discountRules) {
+            if (rule.type === "flat_10_discount" && cart.total > 200 && discountAmount === 10) {
+                discountName = "flat_10_discount";
+                break;
+            } else if (rule.type === "bulk_5_discount" && discountAmount === cart.products[0].price * 0.05) {
+                discountName = "bulk_5_discount";
+                break;
+            } else if (rule.type === "bulk_10_discount" && discountAmount === cart.total * 0.1) {
+                discountName = "bulk_10_discount";
+                break;
+            } else if (rule.type === "tiered_50_discount" && discountAmount === cart.products[2].quantity * (cart.products[2].price * 0.5)) {
+                discountName = "tiered_50_discount";
+                break;
+            }
+        }
+    }
+
+    // Display the final receipt
+    displayReceipt(cart, discountName, discountAmount, shippingFee, giftWrapFee, total);
+}
+
+// Rules for discounts
+const discountRules = [
+    { type: "flat_10_discount" },
+    { type: "bulk_5_discount" },
+    { type: "bulk_10_discount" },
+    { type: "tiered_50_discount" }
+];
+
+// Run the program
+main();
