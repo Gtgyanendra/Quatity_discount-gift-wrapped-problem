@@ -1,0 +1,1 @@
+This program uses a simple command-line interface for input. You can run it in a browser console or any JavaScript environment that supports user input. The program prompts the user for the quantity of each product and whether it should be gift-wrapped. After input, it calculates discounts, fees, and the total amount, then displays the final receipt.
